@@ -16,11 +16,6 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\Event' => [
             'App\Listeners\EventListener',
         ],
-        \Encore\Admin\Auth\Database\Administrator::class => [
-            'deleting' => [
-                \App\Listeners\DeleteRelatedDataForAdminUser::class,
-            ],
-        ],
     ];
 
     /**
