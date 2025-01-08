@@ -24,7 +24,7 @@ class TeacherController extends AdminController
      */
     protected function grid()
     {
-        $grid = new Grid(new Teacher(['adminUser', 'User']));
+        $grid = new Grid(new Teacher(['adminUser', 'user']));
 
         $grid->column('id', __('ID'))->sortable();
         $grid->column('adminUser.username', __('Username'));
@@ -46,7 +46,7 @@ class TeacherController extends AdminController
      */
     protected function detail($id)
     {
-        $show = new Show(Teacher::findOrFail($id)->load(['adminUser', 'User']));
+        $show = new Show(Teacher::findOrFail($id)->load(['adminUser', 'user']));
 
         $show->field('id', __('ID'));
         $show->field('adminUser.username', __('Username'));
@@ -68,32 +68,73 @@ class TeacherController extends AdminController
      */
     protected function form()
     {
-        $form = new Form(new Teacher());
+        $form = new Form(new Teacher(['adminUser', 'user']));
 
-        $form->text('username', __('用户名'))->rules('required|unique:users,username|unique:admin_users,username|regex:/^[a-zA-Z0-9_]+$/', [
-            'required' => '用户名不能为空',
-            'unique'   => '用户名已存在',
-            'regex'    => '用户名只能包含字母、数字和下划线',
-        ]);
-        $form->text('nickname', __('昵称'))->rules('required|unique:users,nickname|unique:teachers,nickname', [
-            'required' => '昵称不能为空',
-            'unique'   => '昵称已存在',
-        ]);
-        $form->email('email', __('邮箱'))->rules('required|email|unique:users,email', [
-            'required' => '邮箱不能为空',
-            'email'    => '邮箱格式不正确',
-            'unique'   => '邮箱已存在',
-        ]);
-        $form->password('password', __('密码'))->rules('required|min:6', [
-            'required' => '密码不能为空',
-            'min'      => '密码至少为6位',
-        ]);
-        $form->password('password_confirmation', __('确认密码'))->rules('same:password', [
-            'same' => '两次输入的密码不一致',
-        ]);
-        $form->image('avatar', __('头像'))->uniqueName()->rules('image', [
-            'image' => '头像必须是图片',
-        ]);
+        if ($form->isCreating()) {
+            $form->text('username', __('用户名'))->rules('required|unique:users,username|unique:admin_users,username|regex:/^[a-zA-Z0-9_]+$/', [
+                'required' => '用户名不能为空',
+                'unique'   => '用户名已存在',
+                'regex'    => '用户名只能包含字母、数字和下划线',
+            ]);
+            $form->text('nickname', __('昵称'))->rules('required|unique:users,nickname|unique:teachers,nickname', [
+                'required' => '昵称不能为空',
+                'unique'   => '昵称已存在',
+            ]);
+            $form->email('email', __('邮箱'))->rules('required|email|unique:users,email', [
+                'required' => '邮箱不能为空',
+                'email'    => '邮箱格式不正确',
+                'unique'   => '邮箱已存在',
+            ]);
+            $form->password('password', __('密码'))->rules('required|min:6', [
+                'required' => '密码不能为空',
+                'min'      => '密码至少为6位',
+            ]);
+            $form->password('password_confirmation', __('确认密码'))->rules('same:password', [
+                'same' => '两次输入的密码不一致',
+            ]);
+            $form->image('avatar', __('头像'))->uniqueName()->rules('image', [
+                'image' => '头像必须是图片',
+            ]);
+        } else {
+            $form->display('id', __('ID'));
+            $form->text('username', __('用户名'))->rules('required|unique:users,username|unique:admin_users,username|regex:/^[a-zA-Z0-9_]+$/', [
+                'required' => '用户名不能为空',
+                'unique'   => '用户名已存在',
+                'regex'    => '用户名只能包含字母、数字和下划线',
+            ])->default(function ($form) {
+                return optional($form->model()->adminUser)->username;
+            });
+            $form->text('nickname', __('昵称'))->rules('required|unique:users,nickname|unique:teachers,nickname', [
+                'required' => '昵称不能为空',
+                'unique'   => '昵称已存在',
+            ]);
+            $form->email('email', __('邮箱'))->rules('required|email|unique:users,email', [
+                'required' => '邮箱不能为空',
+                'email'    => '邮箱格式不正确',
+                'unique'   => '邮箱已存在',
+            ])->default(function ($form) {
+                return optional($form->model()->user)->email;
+            });
+            $form->password('password', __('密码'))->rules('required|min:6', [
+                'required' => '密码不能为空',
+                'min'      => '密码至少为6位',
+            ])->default(function ($form) {
+                return optional($form->model()->adminUser)->password;
+            });
+            $form->password('password_confirmation', __('确认密码'))->rules('required|same:password', [
+                'required' => '确认密码不能为空',
+                'same'     => '两次输入的密码不一致',
+            ])->rules('required')
+                ->default(function ($form) {
+                    return optional($form->model()->adminUser)->password;
+                });
+            // TODO.实在不行Teacher表中加avatar字段
+            $form->image('adminUser.avatar', __('头像'))->uniqueName()->rules('image', [
+                'image' => '头像必须是图片',
+            ])->default(function ($form) {
+                return optional($form->model()->adminUser)->avatar;
+            });
+        }
 
         $form->saving(function (Form $form) {
             DB::beginTransaction();
@@ -128,8 +169,8 @@ class TeacherController extends AdminController
                     // 编辑逻辑
                     $teacher = $form->model();
                     $user = $teacher->user;
-                    $adminUser = Administrator::find($teacher->admin_id);
-
+                    $adminUser = $teacher->adminUser;
+                    
                     // 更新 admin_users 记录
                     $adminUser->username = $form->username;
                     if ($form->password) {
