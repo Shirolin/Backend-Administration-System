@@ -9,7 +9,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  * App\Models\User
  *
  * @property int $id
- * @property string $name
  * @property string $email
  * @property int $role
  * @property string $password
@@ -22,10 +21,18 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  * @method static \Illuminate\Database\Eloquent\Builder|User whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|User whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User wherePassword($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
+ * @property string $username
+ * @property string $nickname
+ * @property string|null $avatar
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection|\Illuminate\Notifications\DatabaseNotification[] $notifications
+ * @property-read int|null $notifications_count
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User whereAvatar($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User whereNickname($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User whereRole($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User whereUsername($value)
  * @mixin \Eloquent
  */
 class User extends Authenticatable

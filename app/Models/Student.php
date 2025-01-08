@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\Student
- * 
+ *
  * @property int $id
  * @property string $nickname
  * @property \Illuminate\Support\Carbon|null $created_at
