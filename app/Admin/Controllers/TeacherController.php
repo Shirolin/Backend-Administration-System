@@ -91,7 +91,9 @@ class TeacherController extends AdminController
         $form->password('password_confirmation', __('确认密码'))->rules('same:password', [
             'same' => '两次输入的密码不一致',
         ]);
-        $form->image('avatar', __('头像'));
+        $form->image('avatar', __('头像'))->uniqueName()->rules('image', [
+            'image' => '头像必须是图片',
+        ]);
 
         $form->saving(function (Form $form) {
             DB::beginTransaction();
