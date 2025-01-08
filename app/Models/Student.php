@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * App\Models\Student
@@ -27,6 +28,24 @@ class Student extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = ['nickname'];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function (Student $model) {
+            DB::beginTransaction();
+            try {
+                // 删除与学生关联的用户
+                $model->user()->delete();
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        });
+    }
 
     /**
      * 关联用户
