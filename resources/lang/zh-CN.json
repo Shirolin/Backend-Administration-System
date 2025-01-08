@@ -1,0 +1,22 @@
+{
+    "User": "用户",
+    "ID": "ID",
+    "Id": "ID",
+    "Username": "用户名",
+    "Name": "名称",
+    "Nickname": "昵称",
+    "Email": "邮箱",
+    "Password": "密码",
+    "Remember token": "记住令牌",
+    "Created at": "创建时间",
+    "Updated at": "更新时间",
+    "Deleted at": "删除时间",
+    "Created At": "创建时间",
+    "Updated At": "更新时间",
+    "Deleted At": "删除时间",
+    "name": "名称",
+    "email": "邮箱",
+    "Status": "状态",
+    "Sort": "排序",
+    "Avatar": "头像"
+}
