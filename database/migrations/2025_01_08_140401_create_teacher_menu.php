@@ -16,7 +16,7 @@ class CreateTeacherMenu extends Migration
             'order' => 8,
             'title' => '教师管理',
             'icon' => 'fa-user',
-            'uri' => '/admin/teachers',
+            'uri' => 'teachers',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -29,6 +29,6 @@ class CreateTeacherMenu extends Migration
      */
     public function down()
     {
-        DB::table('admin_menu')->where('uri', '/admin/teachers')->delete();
+        DB::table('admin_menu')->where('uri', 'teachers')->delete();
     }
 }

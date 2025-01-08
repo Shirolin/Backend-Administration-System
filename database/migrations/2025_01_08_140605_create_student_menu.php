@@ -16,7 +16,7 @@ class CreateStudentMenu extends Migration
             'order' => 9,
             'title' => '学生管理',
             'icon' => 'fa-user',
-            'uri' => '/admin/students',
+            'uri' => 'students',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -29,6 +29,6 @@ class CreateStudentMenu extends Migration
      */
     public function down()
     {
-        DB::table('admin_menu')->where('uri', '/admin/students')->delete();
+        DB::table('admin_menu')->where('uri', 'students')->delete();
     }
 }
