@@ -27,6 +27,7 @@ class EventServiceProvider extends ServiceProvider
     {
         parent::boot();
 
-        //
+        // 管理员用户观察者
+        \Encore\Admin\Auth\Database\Administrator::observe(\App\Observers\AdminUserObserver::class);
     }
 }
