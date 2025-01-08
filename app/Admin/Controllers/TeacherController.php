@@ -211,24 +211,6 @@ class TeacherController extends AdminController
             }
         });
 
-        $form->deleted(function (Form $form) {
-            $teacher = $form->model();
-            $user = $teacher->user;
-            $adminUser = Administrator::find($teacher->admin_id);
-            DB::beginTransaction();
-            try {
-                $teacher->delete();
-                $user->delete();
-                $adminUser->delete();
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::error($e);
-                admin_error('删除教师失败', $e->getMessage());
-                return back();
-            }
-        });
-
         $form->footer(function ($footer) {
 
             // 去掉`重置`按钮

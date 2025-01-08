@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * App\Models\Teacher
@@ -30,6 +31,27 @@ class Teacher extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = ['nickname', 'admin_id'];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function (Teacher $model) {
+            DB::beginTransaction();
+            try {
+                // 删除与教师关联的管理员用户
+                $model->adminUser()->delete();
+
+                // 删除与教师关联的用户
+                $model->user()->delete();
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        });
+    }
 
     /**
      * 关联管理员用户
