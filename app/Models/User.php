@@ -79,6 +79,16 @@ class User extends Authenticatable
     ];
 
     /**
+     * 关联教师
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function teacher()
+    {
+        return $this->hasOne(Teacher::class, 'id');
+    }
+
+    /**
      * 获取角色映射
      *
      * @return array

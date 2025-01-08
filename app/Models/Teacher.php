@@ -44,10 +44,10 @@ class Teacher extends Model
     /**
      * 关联用户
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user()
     {
-        return $this->hasOne(\App\Models\User::class, 'id', 'id');
+        return $this->belongsTo(\App\Models\User::class, 'id', 'id');
     }
 }
