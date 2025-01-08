@@ -70,71 +70,70 @@ class TeacherController extends AdminController
     {
         $form = new Form(new Teacher(['adminUser', 'user']));
 
-        if ($form->isCreating()) {
-            $form->text('username', __('用户名'))->rules('required|unique:users,username|unique:admin_users,username|regex:/^[a-zA-Z0-9_]+$/', [
+        $form->text('username', __('用户名'))
+            ->creationRules('required|unique:users,username|unique:admin_users,username|regex:/^[a-zA-Z0-9_]+$/', [
                 'required' => '用户名不能为空',
                 'unique'   => '用户名已存在',
                 'regex'    => '用户名只能包含字母、数字和下划线',
-            ]);
-            $form->text('nickname', __('昵称'))->rules('required|unique:users,nickname|unique:teachers,nickname', [
-                'required' => '昵称不能为空',
-                'unique'   => '昵称已存在',
-            ]);
-            $form->email('email', __('邮箱'))->rules('required|email|unique:users,email', [
-                'required' => '邮箱不能为空',
-                'email'    => '邮箱格式不正确',
-                'unique'   => '邮箱已存在',
-            ]);
-            $form->password('password', __('密码'))->rules('required|min:6', [
-                'required' => '密码不能为空',
-                'min'      => '密码至少为6位',
-            ]);
-            $form->password('password_confirmation', __('确认密码'))->rules('same:password', [
-                'same' => '两次输入的密码不一致',
-            ]);
-            $form->image('avatar', __('头像'))->uniqueName()->rules('image', [
-                'image' => '头像必须是图片',
-            ]);
-        } else {
-            $form->display('id', __('ID'));
-            $form->text('username', __('用户名'))->rules('required|unique:users,username|unique:admin_users,username|regex:/^[a-zA-Z0-9_]+$/', [
+            ])->updateRules('required|unique:users,username,{{id}}|regex:/^[a-zA-Z0-9_]+$/', [
                 'required' => '用户名不能为空',
                 'unique'   => '用户名已存在',
                 'regex'    => '用户名只能包含字母、数字和下划线',
             ])->default(function ($form) {
                 return optional($form->model()->adminUser)->username;
-            });
-            $form->text('nickname', __('昵称'))->rules('required|unique:users,nickname|unique:teachers,nickname', [
+            })->required();
+
+        $form->text('nickname', __('昵称'))
+            ->creationRules('required|unique:users,nickname|unique:teachers,nickname', [
                 'required' => '昵称不能为空',
                 'unique'   => '昵称已存在',
-            ]);
-            $form->email('email', __('邮箱'))->rules('required|email|unique:users,email', [
+            ])->updateRules('required|unique:users,nickname,{{id}}|unique:teachers,nickname,{{id}}', [
+                'required' => '昵称不能为空',
+                'unique'   => '昵称已存在',
+            ])->default(function ($form) {
+                return optional($form->model()->user)->nickname;
+            })->required();
+
+        $form->email('email', __('邮箱'))
+            ->creationRules('required|email|unique:users,email', [
+                'required' => '邮箱不能为空',
+                'email'    => '邮箱格式不正确',
+                'unique'   => '邮箱已存在',
+            ])->updateRules('required|email|unique:users,email,{{id}}', [
                 'required' => '邮箱不能为空',
                 'email'    => '邮箱格式不正确',
                 'unique'   => '邮箱已存在',
             ])->default(function ($form) {
                 return optional($form->model()->user)->email;
-            });
-            $form->password('password', __('密码'))->rules('required|min:6', [
+            })->required();
+
+        $form->password('password', __('密码'))
+            ->creationRules('required|min:6', [
                 'required' => '密码不能为空',
                 'min'      => '密码至少为6位',
+            ])->updateRules('nullable|min:6', [
+                'min' => '密码至少为6位',
             ])->default(function ($form) {
                 return optional($form->model()->adminUser)->password;
-            });
-            $form->password('password_confirmation', __('确认密码'))->rules('required|same:password', [
+            })->required();
+
+        $form->password('password_confirmation', __('确认密码'))
+            ->creationRules('required|same:password', [
                 'required' => '确认密码不能为空',
                 'same'     => '两次输入的密码不一致',
-            ])->rules('required')
-                ->default(function ($form) {
-                    return optional($form->model()->adminUser)->password;
-                });
-            // TODO.实在不行Teacher表中加avatar字段
-            $form->image('adminUser.avatar', __('头像'))->uniqueName()->rules('image', [
+            ])->updateRules('nullable|same:password', [
+                'same' => '两次输入的密码不一致',
+            ])->default(function ($form) {
+                return optional($form->model()->adminUser)->password;
+            })->required();
+
+        $form->image('avatar', __('头像'))
+            ->uniqueName()
+            ->rules('image', [
                 'image' => '头像必须是图片',
             ])->default(function ($form) {
                 return optional($form->model()->adminUser)->avatar;
             });
-        }
 
         $form->saving(function (Form $form) {
             DB::beginTransaction();
@@ -170,7 +169,13 @@ class TeacherController extends AdminController
                     $teacher = $form->model();
                     $user = $teacher->user;
                     $adminUser = $teacher->adminUser;
-                    
+
+                    // 检查昵称是否已存在管理员表中
+                    $userNameExists = Administrator::where('id', '<>', $teacher->admin_id)->where('name', $form->nickname)->exists();
+                    if ($userNameExists) {
+                        return back()->withInput()->withErrors(['nickname' => '昵称已存在']);
+                    }
+
                     // 更新 admin_users 记录
                     $adminUser->username = $form->username;
                     if ($form->password) {
@@ -179,6 +184,8 @@ class TeacherController extends AdminController
                     $adminUser->name = $form->nickname;
                     $adminUser->avatar = $form->avatar;
                     $adminUser->save();
+
+                    // 检查用户名是否已存在用户表中
 
                     // 更新 users 记录
                     $user->username = $form->username;
