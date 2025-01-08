@@ -18,5 +18,6 @@
     "email": "邮箱",
     "Status": "状态",
     "Sort": "排序",
-    "Avatar": "头像"
+    "Avatar": "头像",
+    "Role": "角色"
 }

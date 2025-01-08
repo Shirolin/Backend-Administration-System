@@ -27,12 +27,11 @@ class TeacherController extends AdminController
         $grid = new Grid(new Teacher(['adminUser', 'User']));
 
         $grid->column('id', __('ID'))->sortable();
-        $grid->column('nickname', __('Nickname'));
         $grid->column('adminUser.username', __('Username'));
-        $grid->column('adminUser.name', '管理员名');
+        $grid->column('nickname', __('Nickname'));
         $grid->column('adminUser.avatar', __('Avatar'))->image('', 50, 50);
-        $grid->column('user.name', '用户名');
         $grid->column('user.email', __('Email'));
+        $grid->column('user.role', __('Role'))->using(User::getRoleMap());
         $grid->column('created_at', __('Created at'));
         $grid->column('updated_at', __('Updated at'));
 
@@ -42,18 +41,19 @@ class TeacherController extends AdminController
     /**
      * Make a show builder.
      *
-     * @param mixed   $id
+     * @param mixed $id
      * @return Show
      */
     protected function detail($id)
     {
-        $show = new Show(Teacher::findOrFail($id)->load('adminUser'));
+        $show = new Show(Teacher::findOrFail($id)->load(['adminUser', 'User']));
 
         $show->field('id', __('ID'));
-        $show->field('nickname', __('Nickname'));
         $show->field('adminUser.username', __('Username'));
-        $show->field('adminUser.name', __('Name'));
+        $show->field('nickname', __('Nickname'));
         $show->field('adminUser.avatar', __('Avatar'))->image('', 50, 50);
+        $show->field('user.email', __('Email'));
+        $show->field('user.role', __('Role'))->using(User::getRoleMap());
         $show->field('created_at', __('Created at'));
         $show->field('updated_at', __('Updated at'));
 
@@ -66,32 +66,6 @@ class TeacherController extends AdminController
      *
      * @return Form
      */
-    protected function oldform()
-    {
-        $form = new Form(new Teacher(['adminUser']));
-
-        // 创建时的表单
-        // "username"(必填) -> "admin_users"."username" -> "users"."username"
-        // "nickname"(必填) -> "admin_users"."name" -> "users"."nickname" -> "teachers"."nickname"
-        // "email"(必填) -> "users"."email"
-        // "password"(必填) -> "admin_users"."password" -> "users"."password"
-        // "role"(固定教师值) -> "users"."role"
-        // "avatar"(选填) -> "admin_users"."avatar" -> "users"."avatar"
-        // "created_at"(自动) -> "admin_users"."created_at" -> "users"."created_at" -> "teachers"."created_at"
-        // "user_id"(自动) -> "users"."id" -> "teachers"."id"
-        // "id"(自动) -> "admin_users"."id" -> "teachers"."admin_id"
-        if ($form->isCreating()) {
-            $form->text('adminUser.username', __('Username'))->rules('required');
-            $form->text('adminUser.name', __('Name'))->rules('required');
-            $form->email('user.email', __('Email'))->rules('required');
-            $form->password('adminUser.password', __('Password'))->rules('required');
-            $form->hidden('user.role')->value(\App\Models\User::ROLE_TEACHER);
-            $form->image('adminUser.avatar', __('Avatar'));
-        }
-
-        return $form;
-    }
-
     protected function form()
     {
         $form = new Form(new Teacher());
