@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Teacher whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Teacher whereNickname($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Teacher whereUpdatedAt($value)
+ * @property int $admin_id
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Teacher whereAdminId($value)
  * @mixin \Eloquent
  */
 class Teacher extends Model
@@ -36,7 +38,7 @@ class Teacher extends Model
      */
     public function adminUser()
     {
-        return $this->belongsTo(\Encore\Admin\Auth\Database\Administrator::class, 'id', 'id');
+        return $this->belongsTo(\Encore\Admin\Auth\Database\Administrator::class, 'admin_id', 'id');
     }
 
     /**
