@@ -11,6 +11,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\MessageBag;
 
 class TeacherController extends AdminController
 {
@@ -119,7 +120,6 @@ class TeacherController extends AdminController
         $form->image('avatar', __('头像'));
 
         $form->saving(function (Form $form) {
-            dd($form);
             DB::beginTransaction();
             try {
                 // 1. 创建 admin_users 记录
@@ -148,6 +148,13 @@ class TeacherController extends AdminController
                 $teacher->save();
 
                 DB::commit();
+                $success = new MessageBag([
+                    'title'   => '操作成功',
+                    'message' => '创建教师成功',
+                ]);
+
+                // 保存成功后跳转到列表页
+                return redirect(admin_url('teachers'))->with(compact('success'));
             } catch (\Exception $e) {
                 DB::rollBack();
                 \Log::error($e);
@@ -172,6 +179,24 @@ class TeacherController extends AdminController
                 admin_error('删除教师失败', $e->getMessage());
                 return back();
             }
+        });
+
+        $form->footer(function ($footer) {
+
+            // 去掉`重置`按钮
+            $footer->disableReset();
+
+            // 去掉`提交`按钮
+            // $footer->disableSubmit();
+
+            // 去掉`查看`checkbox
+            $footer->disableViewCheck();
+
+            // 去掉`继续编辑`checkbox
+            $footer->disableEditingCheck();
+
+            // 去掉`继续创建`checkbox
+            $footer->disableCreatingCheck();
         });
 
         return $form;
