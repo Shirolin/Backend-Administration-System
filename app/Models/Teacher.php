@@ -29,7 +29,7 @@ class Teacher extends Model
     protected $table = 'teachers';
     protected $primaryKey = 'id';
 
-    protected $fillable = ['nickname'];
+    protected $fillable = ['nickname', 'admin_id'];
 
     /**
      * 关联管理员用户
@@ -48,6 +48,6 @@ class Teacher extends Model
      */
     public function user()
     {
-        return $this->belongsTo(\App\Models\User::class, 'id', 'id');
+        return $this->belongsTo(User::class, 'id', 'id');
     }
 }
