@@ -98,35 +98,66 @@ class TeacherController extends AdminController
         $form->saving(function (Form $form) {
             DB::beginTransaction();
             try {
-                // 1. 创建 admin_users 记录
-                $adminUser = Administrator::create([
-                    'username' => $form->username,
-                    'password' => Hash::make($form->password),
-                    'name' => $form->nickname, // admin_users 的 name 字段使用 nickname
-                    'avatar' => $form->avatar,
-                ]);
+                if ($form->isCreating()) {
+                    // 创建逻辑
+                    // 1. 创建 admin_users 记录
+                    $adminUser = Administrator::create([
+                        'username' => $form->username,
+                        'password' => Hash::make($form->password),
+                        'name' => $form->nickname, // admin_users 的 name 字段使用 nickname
+                        'avatar' => $form->avatar,
+                    ]);
 
-                // 2. 创建 users 记录
-                $user = User::create([
-                    'username' => $form->username,
-                    'nickname' => $form->nickname,
-                    'email' => $form->email,
-                    'role' => User::ROLE_TEACHER, // 固定教师角色值
-                    'password' => Hash::make($form->password),
-                    'avatar' => $form->avatar,
-                ]);
+                    // 2. 创建 users 记录
+                    $user = User::create([
+                        'username' => $form->username,
+                        'nickname' => $form->nickname,
+                        'email' => $form->email,
+                        'role' => User::ROLE_TEACHER, // 固定教师角色值
+                        'password' => Hash::make($form->password),
+                        'avatar' => $form->avatar,
+                    ]);
 
-                // 3. 创建 teachers 记录
-                $teacher = new Teacher(); // 使用 new Teacher() 而不是 $form->model()
-                $teacher->id = $user->id; // 设置主键
-                $teacher->nickname = $form->nickname;
-                $teacher->admin_id = $adminUser->id;
-                $teacher->save();
+                    // 3. 创建 teachers 记录
+                    $teacher = new Teacher(); // 使用 new Teacher() 而不是 $form->model()
+                    $teacher->id = $user->id; // 设置主键
+                    $teacher->nickname = $form->nickname;
+                    $teacher->admin_id = $adminUser->id;
+                    $teacher->save();
+                } else {
+                    // 编辑逻辑
+                    $teacher = $form->model();
+                    $user = $teacher->user;
+                    $adminUser = Administrator::find($teacher->admin_id);
+
+                    // 更新 admin_users 记录
+                    $adminUser->username = $form->username;
+                    if ($form->password) {
+                        $adminUser->password = Hash::make($form->password);
+                    }
+                    $adminUser->name = $form->nickname;
+                    $adminUser->avatar = $form->avatar;
+                    $adminUser->save();
+
+                    // 更新 users 记录
+                    $user->username = $form->username;
+                    $user->nickname = $form->nickname;
+                    $user->email = $form->email;
+                    if ($form->password) {
+                        $user->password = Hash::make($form->password);
+                    }
+                    $user->avatar = $form->avatar;
+                    $user->save();
+
+                    // 更新 teachers 记录
+                    $teacher->nickname = $form->nickname;
+                    $teacher->save();
+                }
 
                 DB::commit();
                 $success = new MessageBag([
                     'title'   => '操作成功',
-                    'message' => '创建教师成功',
+                    'message' => $form->isCreating() ? '创建教师成功' : '编辑教师成功',
                 ]);
 
                 // 保存成功后跳转到列表页
@@ -134,7 +165,7 @@ class TeacherController extends AdminController
             } catch (\Exception $e) {
                 DB::rollBack();
                 \Log::error($e);
-                admin_error('创建教师失败', $e->getMessage());
+                admin_error($form->isCreating() ? '创建教师失败' : '编辑教师失败', $e->getMessage());
                 return back()->withInput();
             }
         });
