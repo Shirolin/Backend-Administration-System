@@ -63,7 +63,9 @@ class DataBaseQueryServiceProvider extends ServiceProvider
 
             // PGSQL处理
             if (config('database.default') == 'pgsql') {
-                Log::debug(print_r(['time' => "{$query->time} ms", 'sql' => $sql, 'Executed at' => $tracesText], true));
+                // Log::debug(print_r(['time' => "{$query->time} ms", 'sql' => $sql, 'Executed at' => $tracesText], true));
+                $sql = str_replace('"', "'", $sql);
+                Log::debug('SQL', ['time' => "{$query->time} ms", 'sql' => $sql, 'Executed at' => $tracesText]);
             } else {
                 Log::debug('SQL', ['time' => "{$query->time} ms", 'sql' => $sql, 'Executed at' => $tracesText]);
             }
