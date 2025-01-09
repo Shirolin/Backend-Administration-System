@@ -131,9 +131,7 @@ class TeacherController extends AdminController
             ->uniqueName()
             ->rules('image', [
                 'image' => '头像必须是图片',
-            ])->default(function ($form) {
-                return optional($form->model()->adminUser)->avatar;
-            });
+            ]);
 
         $form->saving(function (Form $form) {
             DB::beginTransaction();
@@ -178,7 +176,7 @@ class TeacherController extends AdminController
 
                     // 更新 admin_users 记录
                     $adminUser->username = $form->username;
-                    if ($form->password) {
+                    if ($form->password && $adminUser->password != $form->password) {
                         $adminUser->password = Hash::make($form->password);
                     }
                     $adminUser->name = $form->nickname;
@@ -191,7 +189,7 @@ class TeacherController extends AdminController
                     $user->username = $form->username;
                     $user->nickname = $form->nickname;
                     $user->email = $form->email;
-                    if ($form->password) {
+                    if ($form->password && $user->password != $form->password) {
                         $user->password = Hash::make($form->password);
                     }
                     $user->avatar = $form->avatar;

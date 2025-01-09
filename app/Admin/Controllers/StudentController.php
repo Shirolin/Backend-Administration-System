@@ -125,13 +125,7 @@ class StudentController extends AdminController
                 return optional($form->model()->user)->password;
             })->required();
 
-        $form->image('avatar', __('Avatar'))
-            ->uniqueName()
-            ->rules('image', [
-                'image' => '头像必须是图片',
-            ])->default(function ($form) {
-                return optional($form->model()->user)->avatar;
-            });
+        $form->image('avatar', __('Avatar'));
 
         $form->saving(function (Form $form) {
             DB::beginTransaction();
@@ -152,6 +146,7 @@ class StudentController extends AdminController
                     $student = new Student(); // 使用 new Student() 而不是 $form->model()
                     $student->id = $user->id; // 设置主键
                     $student->nickname = $form->nickname;
+                    $student->avatar = $form->avatar;
                     $student->save();
                 } else {
                     // 编辑逻辑
@@ -162,7 +157,7 @@ class StudentController extends AdminController
                     $user->username = $form->username;
                     $user->nickname = $form->nickname;
                     $user->email = $form->email;
-                    if ($form->password) {
+                    if ($form->password && $user->password != $form->password) {
                         $user->password = Hash::make($form->password);
                     }
                     $user->avatar = $form->avatar;
@@ -170,6 +165,7 @@ class StudentController extends AdminController
 
                     // 更新 students 记录
                     $student->nickname = $form->nickname;
+                    $student->avatar = $form->avatar;
                     $student->save();
                 }
 
