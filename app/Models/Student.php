@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\DB;
  * @method static \Illuminate\Database\Eloquent\Builder|Student whereNickname($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Student whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property string|null $avatar
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Student whereAvatar($value)
  */
 class Student extends Model
 {

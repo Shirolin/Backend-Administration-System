@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\DB;
  * @property int $admin_id
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Teacher whereAdminId($value)
  * @mixin \Eloquent
+ * @property string|null $avatar
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Teacher whereAvatar($value)
  */
 class Teacher extends Model
 {
