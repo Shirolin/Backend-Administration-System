@@ -4,19 +4,22 @@ namespace App\Admin\Controllers;
 
 use App\Models\Teacher;
 use App\Models\User;
-use Encore\Admin\Auth\Database\Administrator;
-use Encore\Admin\Auth\Database\Role;
+use App\Services\TeacherService;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\MessageBag;
 
 class TeacherController extends AdminController
 {
     protected $title = '教师管理';
+    protected $teacherService;
+
+    public function __construct(TeacherService $teacherService)
+    {
+        $this->teacherService = $teacherService;
+    }
 
     /**
      * Make a grid builder.
@@ -61,11 +64,6 @@ class TeacherController extends AdminController
 
     /**
      * Make a form builder.
-     * 创建教师时会先在用户表中创建教师用户，
-     * 然后在管理员表中创建用户，
-     * 最后再教师表中创建教师，
-     * 
-     * 教师ID与用户ID关联、管理员ID与教师的admin_id关联
      *
      * @return Form
      */
@@ -131,105 +129,31 @@ class TeacherController extends AdminController
             })->required();
 
         $form->saving(function (Form $form) {
-            DB::beginTransaction();
+            // 因为要同时创建/更新多个表的数据
+            // 所以这里拦截保存操作，将表单数据传递给服务类处理
             try {
                 if ($form->isCreating()) {
-                    // 创建逻辑
-                    // 1. 创建 admin_users 记录
-                    $adminUser = Administrator::create([
-                        'username' => $form->username,
-                        'password' => Hash::make($form->password),
-                        'name' => $form->nickname, // admin_users 的 name 字段使用 nickname
-                    ]);
-
-                    // 2. 设置管理员为教师角色
-                    $role = Role::where('slug', 'teacher')->first();
-                    if ($adminUser && $role) {
-                        $adminUser->roles()->attach($role->id); // 将 'teacher' 角色附加给管理员
-                    }
-
-                    // 3. 创建 users 记录
-                    $user = User::create([
-                        'username' => $form->username,
-                        'nickname' => $form->nickname,
-                        'email' => $form->email,
-                        'role' => User::ROLE_TEACHER, // 固定教师角色值
-                        'password' => Hash::make($form->password),
-                    ]);
-
-                    // 4. 创建 teachers 记录
-                    $teacher = new Teacher();
-                    $teacher->id = $user->id; // 设置主键
-                    $teacher->nickname = $form->nickname;
-                    $teacher->admin_id = $adminUser->id;
-                    $teacher->save();
+                    $this->teacherService->createTeacher($form);
                 } else {
-                    // 编辑逻辑
-                    $teacher = $form->model();
-                    $user = $teacher->user;
-                    $adminUser = $teacher->adminUser;
-
-                    // 检查昵称是否已存在管理员表中
-                    $userNameExists = Administrator::where('id', '<>', $teacher->admin_id)->where('name', $form->nickname)->exists();
-                    if ($userNameExists) {
-                        return back()->withInput()->withErrors(['nickname' => '昵称已存在']);
-                    }
-
-                    // 更新 admin_users 记录
-                    $adminUser->username = $form->username;
-                    if ($form->password && $adminUser->password != $form->password) {
-                        $adminUser->password = Hash::make($form->password);
-                    }
-                    $adminUser->name = $form->nickname;
-                    $adminUser->save();
-
-                    // 检查用户名是否已存在用户表中
-
-                    // 更新 users 记录
-                    $user->username = $form->username;
-                    $user->nickname = $form->nickname;
-                    $user->email = $form->email;
-                    if ($form->password && $user->password != $form->password) {
-                        $user->password = Hash::make($form->password);
-                    }
-                    $user->save();
-
-                    // 更新 teachers 记录
-                    $teacher->nickname = $form->nickname;
-                    $teacher->save();
+                    $this->teacherService->updateTeacher($form);
                 }
 
-                DB::commit();
                 $success = new MessageBag([
                     'title'   => '操作成功',
                     'message' => $form->isCreating() ? '创建教师成功' : '编辑教师成功',
                 ]);
 
-                // 保存成功后跳转到列表页
                 return redirect(admin_url('teachers'))->with(compact('success'));
             } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::error($e);
                 admin_error($form->isCreating() ? '创建教师失败' : '编辑教师失败', $e->getMessage());
                 return back()->withInput();
             }
         });
 
         $form->footer(function ($footer) {
-
-            // 去掉`重置`按钮
             $footer->disableReset();
-
-            // 去掉`提交`按钮
-            // $footer->disableSubmit();
-
-            // 去掉`查看`checkbox
             $footer->disableViewCheck();
-
-            // 去掉`继续编辑`checkbox
             $footer->disableEditingCheck();
-
-            // 去掉`继续创建`checkbox
             $footer->disableCreatingCheck();
         });
 
