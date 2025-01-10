@@ -37,6 +37,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User whereUsername($value)
  * @mixin \Eloquent
  * @property-read \App\Models\Teacher $teacher
+ * @property-read mixed $role_name
  */
 class User extends Authenticatable
 {
