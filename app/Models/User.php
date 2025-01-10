@@ -91,7 +91,15 @@ class User extends Authenticatable
      */
     public function teacher(): HasOne
     {
-        return $this->hasOne(Teacher::class, 'id');
+        return $this->hasOne(Teacher::class, 'id', 'id');
+    }
+
+    /**
+     * 关联学生
+     */
+    public function student(): HasOne
+    {
+        return $this->hasOne(Student::class, 'id', 'id');
     }
 
     /**
