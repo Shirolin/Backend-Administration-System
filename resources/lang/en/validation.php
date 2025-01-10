@@ -116,6 +116,9 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'captcha' => 'captcha',
+    ],
 
+    'captcha'    => 'The :attribute is invalid.',
 ];
