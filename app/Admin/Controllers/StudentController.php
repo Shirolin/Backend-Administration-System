@@ -4,17 +4,22 @@ namespace App\Admin\Controllers;
 
 use App\Models\Student;
 use App\Models\User;
+use App\Services\StudentService;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\MessageBag;
 
 class StudentController extends AdminController
 {
     protected $title = '学生管理';
+    protected $studentService;
+
+    public function __construct(StudentService $studentService)
+    {
+        $this->studentService = $studentService;
+    }
 
     /**
      * Make a grid builder.
@@ -39,7 +44,7 @@ class StudentController extends AdminController
     /**
      * Make a show builder.
      *
-     * @param mixed   $id
+     * @param mixed $id
      * @return Show
      */
     protected function detail($id)
@@ -124,74 +129,31 @@ class StudentController extends AdminController
             })->required();
 
         $form->saving(function (Form $form) {
-            DB::beginTransaction();
+            // 因为要同时创建/更新多个表的数据
+            // 所以这里拦截保存操作，将表单数据传递给服务类处理
             try {
                 if ($form->isCreating()) {
-                    // 创建逻辑
-                    // 1. 创建 users 记录
-                    $user = User::create([
-                        'username' => $form->username,
-                        'nickname' => $form->nickname,
-                        'email' => $form->email,
-                        'role' => User::ROLE_STUDENT, // 固定学生角色值
-                        'password' => Hash::make($form->password),
-                    ]);
-
-                    // 2. 创建 students 记录
-                    $student = new Student(); // 使用 new Student() 而不是 $form->model()
-                    $student->id = $user->id; // 设置主键
-                    $student->nickname = $form->nickname;
-                    $student->save();
+                    $this->studentService->createStudent($form);
                 } else {
-                    // 编辑逻辑
-                    $student = $form->model();
-                    $user = $student->user;
-
-                    // 更新 users 记录
-                    $user->username = $form->username;
-                    $user->nickname = $form->nickname;
-                    $user->email = $form->email;
-                    if ($form->password && $user->password != $form->password) {
-                        $user->password = Hash::make($form->password);
-                    }
-                    $user->save();
-
-                    // 更新 students 记录
-                    $student->nickname = $form->nickname;
-                    $student->save();
+                    $this->studentService->updateStudent($form);
                 }
 
-                DB::commit();
                 $success = new MessageBag([
                     'title'   => '操作成功',
                     'message' => $form->isCreating() ? '创建学生成功' : '编辑学生成功',
                 ]);
 
-                // 保存成功后跳转到列表页
                 return redirect(admin_url('students'))->with(compact('success'));
             } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::error($e);
                 admin_error($form->isCreating() ? '创建学生失败' : '编辑学生失败', $e->getMessage());
                 return back()->withInput();
             }
         });
 
         $form->footer(function ($footer) {
-
-            // 去掉`重置`按钮
             $footer->disableReset();
-
-            // 去掉`提交`按钮
-            // $footer->disableSubmit();
-
-            // 去掉`查看`checkbox
             $footer->disableViewCheck();
-
-            // 去掉`继续编辑`checkbox
             $footer->disableEditingCheck();
-
-            // 去掉`继续创建`checkbox
             $footer->disableCreatingCheck();
         });
 
