@@ -41,6 +41,7 @@ class AdminUserObserver
 
     public function deleting(Administrator $user)
     {
+        // 管理员删除时，一并删除关联的教师，以及和教师关联的用户
         Log::info('即将删除管理员到数据库:' . json_encode($user));
         $userId = $user->id;
         $teacher = Teacher::where('admin_id', $userId)->first();
