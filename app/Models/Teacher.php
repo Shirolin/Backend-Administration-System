@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 
 /**
+ * 教师
  * App\Models\Teacher
  *
  * @property int $id
@@ -57,20 +59,16 @@ class Teacher extends Model
 
     /**
      * 关联管理员用户
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function adminUser()
+    public function adminUser(): BelongsTo
     {
         return $this->belongsTo(\Encore\Admin\Auth\Database\Administrator::class, 'admin_id', 'id');
     }
 
     /**
      * 关联用户
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id', 'id');
     }

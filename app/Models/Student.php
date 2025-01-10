@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 
 /**
+ * 学生
  * App\Models\Student
  *
  * @property int $id
@@ -51,11 +53,9 @@ class Student extends Model
 
     /**
      * 关联用户
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function user()
+    public function user(): HasOne
     {
-        return $this->hasOne(\App\Models\User::class, 'id', 'id');
+        return $this->hasOne(User::class, 'id', 'id');
     }
 }

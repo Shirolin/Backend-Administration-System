@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 /**
+ * 用户
  * App\Models\User
  *
  * @property int $id
@@ -79,22 +81,22 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = [
+        'role_name',
+    ];
+
     /**
      * 关联教师
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function teacher()
+    public function teacher(): HasOne
     {
         return $this->hasOne(Teacher::class, 'id');
     }
 
     /**
      * 获取角色映射
-     *
-     * @return array
      */
-    public static function getRoleMap()
+    public static function getRoleMap(): array
     {
         return [
             self::ROLE_NONE => '无',
@@ -105,30 +107,24 @@ class User extends Authenticatable
 
     /**
      * 获取角色名称
-     *
-     * @return string
      */
-    public function getRoleName()
+    public function getRoleNameAttribute(): string
     {
-        return self::getRoleMap()[$this->role] ?? '';
+        return self::getRoleMap()[$this->role] ?? '未知';
     }
 
     /**
      * 是否为教师
-     *
-     * @return bool
      */
-    public function isTeacher()
+    public function isTeacher(): bool
     {
         return $this->role === self::ROLE_TEACHER;
     }
 
     /**
      * 是否为学生
-     *
-     * @return bool
      */
-    public function isStudent()
+    public function isStudent(): bool
     {
         return $this->role === self::ROLE_STUDENT;
     }
