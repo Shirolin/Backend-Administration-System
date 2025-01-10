@@ -29,7 +29,6 @@ class StudentController extends AdminController
         $grid->column('user.username', __('Username'));
         $grid->column('nickname', __('Nickname'));
         $grid->column('user.email', __('Email'));
-        $grid->column('user.avatar', __('Avatar'))->image('', 50, 50);
         $grid->column('user.role', __('Role'))->using(User::getRoleMap());
         $grid->column('created_at', __('Created at'));
         $grid->column('updated_at', __('Updated at'));
@@ -51,7 +50,6 @@ class StudentController extends AdminController
         $show->field('user.username', __('Name'));
         $show->field('nickname', __('Nickname'));
         $show->field('user.email', __('Email'));
-        $show->field('user.avatar', __('Avatar'))->image('', 50, 50);
         $show->field('user.role', __('Role'))->using(User::getRoleMap());
         $show->field('created_at', __('Created at'));
         $show->field('updated_at', __('Updated at'));
@@ -125,8 +123,6 @@ class StudentController extends AdminController
                 return optional($form->model()->user)->password;
             })->required();
 
-        $form->image('avatar', __('Avatar'));
-
         $form->saving(function (Form $form) {
             DB::beginTransaction();
             try {
@@ -139,14 +135,12 @@ class StudentController extends AdminController
                         'email' => $form->email,
                         'role' => User::ROLE_STUDENT, // 固定学生角色值
                         'password' => Hash::make($form->password),
-                        'avatar' => $form->avatar,
                     ]);
 
                     // 2. 创建 students 记录
                     $student = new Student(); // 使用 new Student() 而不是 $form->model()
                     $student->id = $user->id; // 设置主键
                     $student->nickname = $form->nickname;
-                    $student->avatar = $form->avatar;
                     $student->save();
                 } else {
                     // 编辑逻辑
@@ -160,12 +154,10 @@ class StudentController extends AdminController
                     if ($form->password && $user->password != $form->password) {
                         $user->password = Hash::make($form->password);
                     }
-                    $user->avatar = $form->avatar;
                     $user->save();
 
                     // 更新 students 记录
                     $student->nickname = $form->nickname;
-                    $student->avatar = $form->avatar;
                     $student->save();
                 }
 

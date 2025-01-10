@@ -29,7 +29,6 @@ class TeacherController extends AdminController
         $grid->column('id', __('ID'))->sortable();
         $grid->column('adminUser.username', __('Username'));
         $grid->column('nickname', __('Nickname'));
-        $grid->column('adminUser.avatar', __('Avatar'))->image('', 50, 50);
         $grid->column('user.email', __('Email'));
         $grid->column('user.role', __('Role'))->using(User::getRoleMap());
         $grid->column('created_at', __('Created at'));
@@ -51,7 +50,6 @@ class TeacherController extends AdminController
         $show->field('id', __('ID'));
         $show->field('adminUser.username', __('Username'));
         $show->field('nickname', __('Nickname'));
-        $show->field('adminUser.avatar', __('Avatar'))->image('', 50, 50);
         $show->field('user.email', __('Email'));
         $show->field('user.role', __('Role'))->using(User::getRoleMap());
         $show->field('created_at', __('Created at'));
@@ -62,7 +60,11 @@ class TeacherController extends AdminController
 
     /**
      * Make a form builder.
-     * 创建教师时会先在用户表中创建教师用户，然后在管理员表中创建用户，最后在教师表中创建教师，教师ID与用户ID关联、管理员ID与教师的admin_id关联
+     * 创建教师时会先在用户表中创建教师用户，
+     * 然后在管理员表中创建用户，
+     * 最后再教师表中创建教师，
+     * 
+     * 教师ID与用户ID关联、管理员ID与教师的admin_id关联
      *
      * @return Form
      */
@@ -127,12 +129,6 @@ class TeacherController extends AdminController
                 return optional($form->model()->adminUser)->password;
             })->required();
 
-        $form->image('avatar', __('头像'))
-            ->uniqueName()
-            ->rules('image', [
-                'image' => '头像必须是图片',
-            ]);
-
         $form->saving(function (Form $form) {
             DB::beginTransaction();
             try {
@@ -143,7 +139,6 @@ class TeacherController extends AdminController
                         'username' => $form->username,
                         'password' => Hash::make($form->password),
                         'name' => $form->nickname, // admin_users 的 name 字段使用 nickname
-                        'avatar' => $form->avatar,
                     ]);
 
                     // 2. 创建 users 记录
@@ -153,7 +148,6 @@ class TeacherController extends AdminController
                         'email' => $form->email,
                         'role' => User::ROLE_TEACHER, // 固定教师角色值
                         'password' => Hash::make($form->password),
-                        'avatar' => $form->avatar,
                     ]);
 
                     // 3. 创建 teachers 记录
@@ -180,7 +174,6 @@ class TeacherController extends AdminController
                         $adminUser->password = Hash::make($form->password);
                     }
                     $adminUser->name = $form->nickname;
-                    $adminUser->avatar = $form->avatar;
                     $adminUser->save();
 
                     // 检查用户名是否已存在用户表中
@@ -192,7 +185,6 @@ class TeacherController extends AdminController
                     if ($form->password && $user->password != $form->password) {
                         $user->password = Hash::make($form->password);
                     }
-                    $user->avatar = $form->avatar;
                     $user->save();
 
                     // 更新 teachers 记录
