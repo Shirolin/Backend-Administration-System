@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 学生
@@ -38,14 +38,14 @@ class Student extends Model
     {
         parent::boot();
 
+        // 删除学生时删除与学生关联的用户
         static::deleting(function (Student $model) {
             DB::beginTransaction();
             try {
-                // 删除与学生关联的用户
                 $model->user()->delete();
-
                 DB::commit();
             } catch (\Exception $e) {
+                Log::error($e->getMessage());
                 DB::rollBack();
                 throw $e;
             }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 教师
@@ -40,17 +41,15 @@ class Teacher extends Model
     {
         parent::boot();
 
+        // 删除教师时删除与教师关联的管理员用户和用户
         static::deleting(function (Teacher $model) {
             DB::beginTransaction();
             try {
-                // 删除与教师关联的管理员用户
                 $model->adminUser()->delete();
-
-                // 删除与教师关联的用户
                 $model->user()->delete();
-
                 DB::commit();
             } catch (\Exception $e) {
+                Log::error($e->getMessage());
                 DB::rollBack();
                 throw $e;
             }
