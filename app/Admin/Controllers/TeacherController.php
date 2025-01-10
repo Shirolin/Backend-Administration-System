@@ -5,6 +5,7 @@ namespace App\Admin\Controllers;
 use App\Models\Teacher;
 use App\Models\User;
 use Encore\Admin\Auth\Database\Administrator;
+use Encore\Admin\Auth\Database\Role;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -141,7 +142,13 @@ class TeacherController extends AdminController
                         'name' => $form->nickname, // admin_users 的 name 字段使用 nickname
                     ]);
 
-                    // 2. 创建 users 记录
+                    // 2. 设置管理员为教师角色
+                    $role = Role::where('slug', 'teacher')->first();
+                    if ($adminUser && $role) {
+                        $adminUser->roles()->attach($role->id); // 将 'teacher' 角色附加给管理员
+                    }
+
+                    // 3. 创建 users 记录
                     $user = User::create([
                         'username' => $form->username,
                         'nickname' => $form->nickname,
@@ -150,8 +157,8 @@ class TeacherController extends AdminController
                         'password' => Hash::make($form->password),
                     ]);
 
-                    // 3. 创建 teachers 记录
-                    $teacher = new Teacher(); // 使用 new Teacher() 而不是 $form->model()
+                    // 4. 创建 teachers 记录
+                    $teacher = new Teacher();
                     $teacher->id = $user->id; // 设置主键
                     $teacher->nickname = $form->nickname;
                     $teacher->admin_id = $adminUser->id;
